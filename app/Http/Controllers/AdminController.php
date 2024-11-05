@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -40,5 +42,28 @@ class AdminController extends Controller
         Auth::logout();
 
         return redirect('/login');
+    }
+
+    public function confirmOrder(Request $request)
+    {
+        $order = Order::find($request->order_id);
+
+        if (!$order || $order->status !== 'pending') {
+            return redirect()->back()->with(['error', 'Order not found or order is not pending']);
+        }
+
+        if ($order->payment_receipt && Storage::exists('public/' . $order->payment_receipt)) {
+            Storage::delete('public/' . $order->payment_receipt);
+        }
+
+        $order->status = 'Confirmed';
+        $order->save();
+        return redirect()->back()->with(['success', 'Order confirmed']);
+    }
+
+    public function show(Request $request)
+    {
+        $pendingOrders = Order::where('status', 'pending')->get();
+        return view('admin.order', compact('pendingOrders'));
     }
 }

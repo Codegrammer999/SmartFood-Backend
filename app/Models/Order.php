@@ -8,9 +8,11 @@ class Order extends Model
 {
     protected $fillable = [
         'menu_id',
+        'menu_name',
         'quantity',
         'total_price',
-        'status'
+        'status',
+        'payment_receipt'
     ];
 
     public function user()
@@ -20,6 +22,6 @@ class Order extends Model
 
     public function menu()
     {
-        $this->belongsTo(Menu::class);
+        return $this->belongsTo(Menu::class);
     }
 }
