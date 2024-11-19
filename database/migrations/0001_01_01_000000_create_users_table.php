@@ -13,14 +13,17 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('referral_id')->unique();
             $table->string('name');
+            $table->string('username')->unique();
             $table->string('email')->unique();
-            $table->unsignedBigInteger('points')->default(0);
+            $table->string('referral_id')->unique();
+	        $table->string('payment_receipt')->nullable();
+	        $table->string('registration_status')->default('pending');
             $table->string('role')->default('user');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            $table->foreignId('referred_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
 

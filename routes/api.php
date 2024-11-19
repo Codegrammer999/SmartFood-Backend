@@ -5,10 +5,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\CodeController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/submit-payment', [AuthController::class, 'submitPaymentReceipt']);
+Route::post('/code/verify', [CodeController::class, 'verifyCode']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
@@ -21,5 +24,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/menus', [MenuController::class, 'sendMenus']);
     Route::post('/make-order', [OrderController::class, 'create']);
     Route::get('/menus/{id}', [MenuController::class, 'getSpecificMenu']);
-    Route::post('/getUserOrders/', [OrderController::class, 'getOrders']);
+    Route::post('/getUserOrders', [OrderController::class, 'getOrders']);
+    Route::post('/code/create', [CodeController::class, 'create']);
 });

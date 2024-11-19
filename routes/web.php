@@ -5,31 +5,35 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OrderController;
 
-Route::middleware(['guest'])->group(function () {
-
-    Route::get('/register', function () {
-        return view('admin.register');
-    });
-
-    Route::get('/login', function () {
-        return view('admin.login');
-    });
-
-    Route::post('/register', [AdminController::class, 'register']);
-    Route::post('/login', [AdminController::class, 'login']);
+Route::middleware(['admin'])->group(function () {
+    Route::get('/', [AdminController::class, 'showDashboard'])->name('admin.dashboard');
+    Route::get('/admin', [AdminController::class, 'showDashboard'])->name('admin.dashboard');
 });
 
-Route::middleware(['role'])->group(function () {
+Route::prefix('admin')->group(function (){
 
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
+    Route::middleware(['guest'])->group(function () {
+
+        Route::get('/register', [AdminController::class, 'showRegister'])->name('admin.register');
+        Route::get('/login', [AdminController::class, 'showLogin'])->name('admin.login');
+        Route::post('/register', [AdminController::class, 'register']);
+        Route::post('/login', [AdminController::class, 'login']);
+
+   });
+
+    Route::middleware(['admin'])->group(function () {
+
+        Route::get('/dashboard', [AdminController::class, 'showDashboard'])->name('admin.dashboard');
+        Route::get('/orders', [AdminController::class, 'showOrders'])->name('admin.orders');
+        Route::get('/menus', [AdminController::class, 'showMenus'])->name('admin.menus');
+        Route::get('/users/pending', [AdminController::class, 'showPendingUsers'])->name('admin.pending-users');
+        Route::get('/orders', [AdminController::class, 'showPendingOrders'])->name('admin.orders');
+        Route::post('/delete-menu', [MenuController::class, 'delete']);
+        Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
+        Route::post('/create-menu', [MenuController::class, 'create'])->name('admin.create-menu');
+        Route::post('/confirm-order', [AdminController::class, 'confirmOrder']);
+	    Route::post('/users/{id}/confirm', [AdminController::class, 'confirmUserRegistration'])->name('users.confirm');
+
     });
-
-    Route::get('/orders', [AdminController::class, 'show']);
-
-    Route::post('/delete-menu', [MenuController::class, 'delete']);
-    Route::post('/logout', [AdminController::class, 'logout']);
-    Route::post('/create-menu', [MenuController::class, 'create']);
-    Route::post('/confirm-order', [AdminController::class, 'confirmOrder']);
 
 });

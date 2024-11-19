@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Referral;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -17,9 +20,10 @@ class AuthController extends Controller
     {
         $data = Validator::make($request->all(), [
             'name' => 'required|string|min:5|max:20',
+            'username' => 'required|string|unique:users|min:5|max:20',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:5|max:255|confirmed',
-            'referral_id' => 'nullable|string|min:10|max:10'
+            'referral_id' => 'nullable|exists:users,referral_id|string|max:10',
+            'password' => 'required|min:5|max:255|confirmed'
         ]);
 
         if ($data->fails())
@@ -29,37 +33,52 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if ($request->filled('referral_id'))
-        {
-            $userWithIncomingReferralId = User::where('referral_id', $request->referral_id)->first();
+        DB::beginTransaction();
 
-            if (!$userWithIncomingReferralId)
+        try {
+
+        $user = new User();
+        $user->name = $request->name;
+        $user->username = $request->username;
+        $user->email = $request->email;
+        $user->password = $request->password;
+        $user->referred_by = null;
+        $user->role = 'user';
+        $user->save();
+
+        if (!empty($request->referral_id))
+        {
+            $referrer = User::where('referral_id', $request->referral_id)->first();
+            
+            if ($referrer)
             {
-                return response()->json([
-                    'referralErr' => 'User with referral id ' . $request->referral_id .' not found!',
-                    'success' => false
+                $user->referred_by = $referrer->id;
+                $user->save();
+
+                Referral::create([
+                    'referrer_id' => $referrer->id,
+                    'referred_user_id' => $user->id,
                 ]);
             }
-
-            $pointsToAdd = 20;
-            $userWithIncomingReferralId->points += $pointsToAdd;
-            $userWithIncomingReferralId->save();
-
-            event(new NewReferral($userWithIncomingReferralId, $pointsToAdd));
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
-            'points' => 20,
-            'role' => 'user'
-        ]);
+        DB::commit();
 
         return response()->json([
             'message' => 'New user created',
-            'success' => true
+            'success' => true,
+            'user_id' => $user->id
         ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return response()->json([
+                'message' => 'Registration failed',
+                'error' => $e->getMessage(),
+                'success' => false
+            ], 500);
+        }
     }
 
     /**
@@ -85,6 +104,14 @@ class AuthController extends Controller
         {
             return response()->json([
                 'message' => 'Incorrect email or Password',
+                'success' => false
+            ], 401);
+        }
+
+        if ($user->registration_status !== 'confirmed')
+        {
+            return response()->json([
+                'message' => 'Account not confirmed',
                 'success' => false
             ], 401);
         }
@@ -137,6 +164,48 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'User deleted',
+            'success' => true
+        ], 200);
+    }
+
+    public function submitPaymentReceipt(Request $request)
+    {
+        $data = Validator::make($request->all(), [
+            'user_id' => 'required|numeric',
+            'payment_receipt' => 'required|string'
+        ]);
+
+        if ($data->fails())
+        {
+            return response()->json([
+                'errors' => $data->errors()
+            ], 422);
+        }
+
+        $user = User::find($request->user_id);
+
+        if (!$user)
+        {
+            return response()->json('User not found!', 404);
+        }
+
+        // Decode and store the payment receipt image
+        $receipt = $request->payment_receipt;
+        $ex = explode(',', $receipt);
+        $imageData = base64_decode($ex[1]);
+
+        $extension = str_contains($ex[0], 'jpeg') ? 'jpg' : 'png';
+        $imageName = time() . '.' . $extension;
+        $imagePath = 'payments/' . $imageName;
+
+        Storage::disk('public')->put($imagePath, $imageData);
+        $imageUrl = asset('storage/' . $imagePath);
+
+        $user->payment_receipt = $imageUrl;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Payment received sucessfully',
             'success' => true
         ], 200);
     }

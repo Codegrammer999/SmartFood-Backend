@@ -21,10 +21,14 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
-        'points',
-        'role'
+        'payment_receipt',
+        'referral_id',
+        'referred_by',
+        'role',
+        'registration_status'
     ];
 
     protected static function boot()
@@ -61,6 +65,41 @@ class User extends Authenticatable
 
     public function orders()
     {
-        return $this->hasMany(Order::class);    
+        return $this->hasMany(Order::class);
+    }
+
+    public function mainwallet()
+    {
+        return $this->hasOne(MainWallet::class);
+    }
+
+    public function bonuswallet()
+    {
+        return $this->hasOne(BonusWallet::class);
+    }
+
+    public function referrer()
+    {
+        return $this->BelongsTo(Referral::class, 'referred_by');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    public function referredUsers()
+    {
+        return $this->hasMany(Referral::class, 'referred_by');
+    }
+
+    public function ownedCodes()
+    {
+        $this->hasMany(Code::class, 'user_id');
+    }
+
+    public function usedCodes()
+    {
+        $this->hasMany(Code::class, 'used_by');
     }
 }
