@@ -94,9 +94,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.pending-users') }}"
+                    <a href="{{ route('admin.menus') }}"
                        class="block p-2 bg-white/20 text-white rounded hover:text-gray-200 transition duration-300">
-                        Pending Users
+                        Groceries
                     </a>
                 </li>
                 <li>
@@ -106,9 +106,15 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.menus') }}"
+                    <a href="{{ route('admin.pending-users') }}"
                        class="block p-2 bg-white/20 text-white rounded hover:text-gray-200 transition duration-300">
-                        Menu
+                        Pending Users
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.pending-codes') }}"
+                       class="block p-2 bg-white/20 text-white rounded hover:text-gray-200 transition duration-300">
+                        Pending Codes
                     </a>
                 </li>
             </ul>
@@ -117,6 +123,14 @@
 
         <!-- Main Content -->
         <main class="content">
+            @error('error')
+                <p class="text-center p-2">{{ $message }}</p>
+            @enderror
+
+            @if(session('success'))
+                <p class="text-center p-2">{{ session('success') }}</p>
+            @endif
+
             @yield('content')
         </main>
     </div>
@@ -133,9 +147,11 @@
         <ul class="flex flex-col items-center justify-center space-y-6">
             @auth('admin')
                 <li><a href="{{ route('admin.dashboard') }}" class="text-lg">Dashboard</a></li>
-                <li><a href="{{ route('admin.pending-users') }}" class="text-lg">Pending Users</a></li>
-                <li><a href="{{ route('admin.orders') }}" class="text-lg">Orders</a></li>
                 <li><a href="{{ route('admin.menus') }}" class="text-lg">Menu</a></li>
+                <li><a href="{{ route('admin.orders') }}" class="text-lg">Orders</a></li>
+                <li><a href="{{ route('admin.pending-users') }}" class="text-lg">Pending Users</a></li>
+                <li><a href="{{ route('admin.pending-codes') }}" class="text-lg">Pending Codes</a></li>
+
                 <li>
                     <form action="{{ route('admin.logout') }}" method="post" class="w-full text-center">
                         @csrf
@@ -158,18 +174,17 @@
         </button>
     </nav>
 
-    <!-- Scripts -->
     <script>
-        const mobileNav = document.getElementById('mobile-nav');
-        const toggleButton = document.getElementById('mobile-menu-toggle');
-        const closeButton = document.getElementById('close-mobile-nav');
+        const mobileNav = document.getElementById('mobile-nav')
+        const toggleButton = document.getElementById('mobile-menu-toggle')
+        const closeButton = document.getElementById('close-mobile-nav')
 
         toggleButton.addEventListener('click', () => {
-            mobileNav.classList.toggle('hidden');
+            mobileNav.classList.toggle('hidden')
         });
 
         closeButton.addEventListener('click', () => {
-            mobileNav.classList.add('hidden');
+            mobileNav.classList.add('hidden')
         });
     </script>
 </body>

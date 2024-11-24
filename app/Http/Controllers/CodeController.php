@@ -16,6 +16,17 @@ class CodeController extends Controller
             'payment_receipt' => 'required|string'
         ]);
 
+        if ($request->user()->ownedCodes)
+        {
+            if ($request->user()->ownedCodes->count() === 5)
+            {
+                return response()->json([
+                    'message' => 'Maximum purchasable codes reached',
+                    'success' => false
+                ], 401);
+            }
+        }
+
         $receipt = $request->payment_receipt;
         $ex = explode(',', $receipt);
         $imageData = base64_decode($ex[1]);
@@ -30,6 +41,7 @@ class CodeController extends Controller
         $code = Code::create([
             'code' => Code::generateUniqueCode(),
             'user_id' => $request->user()->id,
+            'value' => 5000,
             'expires_at' => now()->addDays(15),
             'payment_receipt' => $imageUrl
         ]);
@@ -40,21 +52,39 @@ class CodeController extends Controller
         ], 200);
     }
 
-    public function verifyCode(Request $request)
+    public function getUserCodes(Request $request)
+    {
+        $codes = $request->user()->ownedCodes;
+
+        return response()->json($codes, 200);
+    }
+
+    public function verifyRegistrationCode(Request $request)
     {
         $data = Validator::make($request->all(), [
             'user_id' => 'required|numeric',
-            'code' => 'required|numeric|max:20'
+            'code' => 'required|string|max:20'
         ]);
 
         $user = User::find($request->user_id);
 
         if (!$user)
         {
-            return response()->json('Please create an account first', 401);
+            return response()->json([
+                'message' => 'Please create an account first',
+                'success' => false
+            ], 401);
         }
 
         $code = Code::where('code', $request->code)->first();
+
+        if ($code->status !== 'Activated')
+        {
+            return response()->json([
+                'message' => 'Code has not been activated',
+                'success' => false
+            ], 400);
+        }
 
         if (!$code || now()->greaterThan($code->expires_at))
         {
@@ -77,10 +107,13 @@ class CodeController extends Controller
         $code->is_redeemed = true;
         $code->redeemed_at = now();
         $code->used_by = $user->id;
+
+        $user->registration_status = 'confirmed';
         $user->bonusWallet()->create([
             'balance' => $code->value
         ]);
         //$owner->notify(new CodeRedeemedNotification($user, $code)); for notifications later
+        $user->save();
         $code->save();
 
         return response()->json([

@@ -32,17 +32,17 @@
 
                                 <form action="{{ route('users.confirm', $user->id) }}" method="post">
                                     @csrf
-                                    <button type="submit" class="p-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300">
+                                    <button onclick="confirmUser(event)" type="submit" class="p-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300">
                                         Confirm
                                     </button>
                                 </form>
 
-                                {{-- <form action="{{ route('admin.rejectUser', $user->id) }}" method="post">
+                                <form action="{{ route('admin.rejectUser', $user->id) }}" method="post">
                                     @csrf
-                                    <button type="submit" class="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">
+                                    <button onclick="rejectUser(event)" type="submit" class="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">
                                         Reject
                                     </button>
-                                </form> --}}
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -56,3 +56,17 @@
         @endif
     </div>
 @endsection
+
+<script>
+    const rejectUser = (e) => {
+        if (!confirm('Are you sure you want to reject this user?')) {
+            e.preventDefault()
+        }
+    }
+
+    const confirmUser = (e) => {
+        if (!confirm('Are you sure you want to confirm this user?')) {
+            e.preventDefault()
+        }
+    }
+</script>

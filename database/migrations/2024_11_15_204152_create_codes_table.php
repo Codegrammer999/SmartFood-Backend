@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('used_by')->nullable();
             $table->string('code')->unique();
             $table->string('status')->default('pending');
-            $table->string('payment_receipt');
+            $table->string('payment_receipt')->nullable();
             $table->decimal('value', 10, 2);
             $table->boolean('is_redeemed')->default(false);
             $table->timestamp('redeemed_at')->nullable();

@@ -1,17 +1,15 @@
 @extends('layout.base')
 
 @section('content')
+<div>
+    <a class="bg-[#ef6002] text-white py-2 px-6 rounded-md" href="{{ route('admin.show-menu')}}">Add &plus;</a>
 
-    <form action="{{ route('admin.create-menu') }}" method="post" enctype="multipart/form-data">
-        @csrf
-        <input type="text" name="name">
-        <input type="text" name="category" placeholder="Category">
-        <input type="text" name="description" placeholder="Description">
-        <input type="file" name="image" placeholder="Image">
-        <input type="number" name="price" placeholder="Price">
-        <input type="number" name="priceOff" placeholder="PriceOff">
-        <button>Add Menu</button>
-    </form>
-    
+    <div class="text-white">
+        @forelse ($menus as $menu)
+            <p>{{ $menu->name }}</p>
+        @empty
+            <p class="text-center">No groceries found</p>
+        @endforelse
+    </div>
+</div>
 @endsection
-

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('quantity');
             $table->decimal('total_price', 10, 2);
             $table->string('status')->default('pending');
-            $table->string('payment_receipt');
+            $table->string('payment_receipt')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

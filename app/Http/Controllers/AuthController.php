@@ -49,7 +49,7 @@ class AuthController extends Controller
         if (!empty($request->referral_id))
         {
             $referrer = User::where('referral_id', $request->referral_id)->first();
-            
+
             if ($referrer)
             {
                 $user->referred_by = $referrer->id;
@@ -111,7 +111,7 @@ class AuthController extends Controller
         if ($user->registration_status !== 'confirmed')
         {
             return response()->json([
-                'message' => 'Account not confirmed',
+                'status' => 'Unconfirmed',
                 'success' => false
             ], 401);
         }

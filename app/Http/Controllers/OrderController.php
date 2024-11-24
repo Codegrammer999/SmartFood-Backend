@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
+    // function to create orders
     public function create(Request $request)
     {
         $orders = $request->orders[0]['items'] ?? null;
@@ -65,10 +66,12 @@ class OrderController extends Controller
         }
 
         return response()->json([
+            'message' => 'Order placed successfully',
             'success' => true
         ]);
     }
 
+    // function to send orders to frontend
     public function getOrders(Request $request)
     {
         if ($request->input('query') === 'all')

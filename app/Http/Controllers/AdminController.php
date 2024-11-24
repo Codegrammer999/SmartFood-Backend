@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Code;
 use App\Models\Menu;
 use App\Models\User;
 use App\Models\Admin;
@@ -10,13 +11,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
     public function showRegister(Request $request)
     {
         return view('admin.register');
+    }
+
+    public function showOrderOwner($id)
+    {
+        $user = User::findorfail($id);
+        return view('admin.user', compact('user'));
     }
 
     public function showLogin(Request $request)
@@ -40,19 +46,20 @@ class AdminController extends Controller
 
     public function showPendingOrders(Request $request)
     {
-        $pendingOrders = Order::where('status', 'pending')->paginate(10);
+        $pendingOrders = Order::where('status', 'pending')->latest()->paginate(10);
         return view('admin.orders', compact('pendingOrders'));
     }
 
     public function showMenus(Request $request)
     {
         $menus = Menu::paginate(10);
+
         return view('admin.menus', compact('menus'));
     }
 
     public function showPendingUsers(Request $request)
     {
-        $users = User::where('registration_status', 'pending')->paginate(10);
+        $users = User::where('registration_status', 'pending')->latest()->paginate(10);
         return view('admin.pending-users', compact('users'));
     }
 
@@ -76,8 +83,6 @@ class AdminController extends Controller
         'password' => Hash::make($data['password'])
        ]);
 
-
-
        return redirect('/admin/login');
     }
 
@@ -96,41 +101,70 @@ class AdminController extends Controller
         return redirect()->intended('/admin/dashboard');
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
         Auth::guard('admin')->logout();
 
         return redirect('/admin/login');
     }
 
-    public function confirmOrder(Request $request)
+    public function confirmOrder($id)
     {
-        $order = Order::find($request->order_id);
+        $order = Order::find($id);
 
-        if (!$order || $order->status !== 'pending') {
-            return redirect()->back()->with(['error', 'Order not found or order is not pending']);
+        if (!$order || $order->status !== 'pending')
+        {
+            return redirect()->back()->withErrors(['error' => 'Order not found or order has already been confirmed']);
         }
 
-        if ($order->payment_receipt && Storage::exists('public/' . $order->payment_receipt)) {
-            Storage::delete('public/' . $order->payment_receipt);
+        if ($order->payment_receipt)
+        {
+            $img = str_replace(url('storage'). '/', '', $order->payment_receipt);
+
+            if (Storage::disk('public')->exists($img))
+            {
+                Storage::disk('public')->delete($img);
+            }
         }
 
         $order->status = 'Confirmed';
+        $order->payment_receipt = null;
         $order->save();
-        return redirect()->back()->with(['success', 'Order confirmed']);
+        return redirect()->back()->with('success', 'Order confirmed successfully');
     }
 
     public function confirmUserRegistration($id)
     {
         $user = User::find($id);
 
-        if (!$user) {
-            return redirect()->back()->withErrors(['confirmation_error' => 'User not found']);
+        if (!$user)
+        {
+            return redirect()->back()->withErrors(['error' => 'User not found']);
         }
 
-        $referrer = User::findorfail($user->referrer->id);
-        $referrer->bonusWallet->balance += 5000;
-        $referrer->bonusWallet->save();
+        if ($user->payment_receipt)
+        {
+            $img = str_replace(url('storage'). '/', '', $user->payment_receipt);
+
+            if (Storage::disk('public')->exists($img))
+            {
+                Storage::disk('public')->delete($img);
+                $user->payment_receipt = null;
+            }
+        }
+
+        if ($user->referrer)
+        {
+            $referrer = User::findorfail($user->referrer->referrer_id);
+
+            if ($referrer->registration_status !== 'confirmed')
+            {
+                return redirect()->back()->withErrors(['error' => 'Please confirm this user referrer first']);
+            }
+
+            $referrer->bonusWallet->balance += 5000;
+            $referrer->bonusWallet->save();
+        }
 
         $user->bonusWallet()->create([
             'balance' => 5000
@@ -140,5 +174,42 @@ class AdminController extends Controller
         $user->save();
 
         return redirect()->back()->with('success', 'User confirmed successfully');
+    }
+
+    public function rejectUserRegistration($id)
+    {
+        $user = User::find($id);
+
+        if (!$user)
+        {
+            return redirect()->back()->withErrors(['error' => 'User not found']);
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return redirect()->back()->with('success', 'User registration rejected');
+    }
+
+    public function showCodes(Request $request)
+    {
+        $codes = Code::where('status', 'pending')->latest()->paginate(10);
+
+        return view('admin.pending-codes', compact('codes'));
+    }
+
+    public function activateCode($id)
+    {
+        $code = Code::find($id);
+
+        if (!$code)
+        {
+            return redirect()->back()->withErrors(['error' => 'Code not found']);
+        }
+
+        $code->status = 'Activated';
+        $code->save();
+
+        return redirect()->back()->with(['success', 'Code activated successfully']);
     }
 }

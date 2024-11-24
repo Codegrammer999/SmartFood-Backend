@@ -95,11 +95,11 @@ class User extends Authenticatable
 
     public function ownedCodes()
     {
-        $this->hasMany(Code::class, 'user_id');
+        return $this->hasMany(Code::class, 'user_id');
     }
 
     public function usedCodes()
     {
-        $this->hasMany(Code::class, 'used_by');
+        return $this->hasMany(Code::class, 'used_by');
     }
 }

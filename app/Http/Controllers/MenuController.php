@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Storage;
 
 class MenuController extends Controller
 {
+    public function show(Request $request)
+    {
+        return view('admin.create-menu');
+    }
+
     /**
      * function to create a menu
      */
@@ -69,22 +74,21 @@ class MenuController extends Controller
     {
         $menus = Menu::paginate(30);
 
-        return response()->json($menus);
+        return response()->json($menus, 200);
     }
 
     /**
      * function to fetch specific menu by id
      */
-    public function getSpecificMenu($id)
+    public function showMenu($id)
     {
         $menu = Menu::find($id);
 
-        if (!$menu) {
-            return response()->json([
-                'error' => 'Menu not found!'
-            ], 404);
+        if (!$menu)
+        {
+            return redirect()->back()->withErrors(['error' => 'Menu not found!']);
         }
 
-        return response()->json($menu, 200);
+        return view('admin.menu', compact('menu'));
     }
 }
