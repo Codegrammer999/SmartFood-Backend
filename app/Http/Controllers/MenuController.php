@@ -43,7 +43,7 @@ class MenuController extends Controller
         $menu->image = $imagePath;
         $menu->save();
 
-        return redirect()->back()->with('success', 'New menu addedd');
+        return redirect()->back()->with('success', 'New menu added');
     }
 
     /**
@@ -72,7 +72,13 @@ class MenuController extends Controller
      */
     public function sendMenus(Request $request)
     {
-        $menus = Menu::paginate(30);
+        $menus;
+
+        if ($request->category === 'all') {
+            $menus = Menu::latest()->paginate(10);
+        }else {
+            $menus = Menu::where('category', $request->category)->latest()->paginate(10);
+        }
 
         return response()->json($menus, 200);
     }
@@ -90,5 +96,20 @@ class MenuController extends Controller
         }
 
         return view('admin.menu', compact('menu'));
+    }
+
+    public function getSpecificMenu($id)
+    {
+        $menu = Menu::find($id);
+
+        if (!$menu)
+        {
+            return response()->json([
+                'message' => 'Menu not found',
+                'success' => true
+            ], 404);
+        }
+
+        return response()->json($menu, 200);
     }
 }

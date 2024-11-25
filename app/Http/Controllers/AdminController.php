@@ -149,7 +149,7 @@ class AdminController extends Controller
             if (Storage::disk('public')->exists($img))
             {
                 Storage::disk('public')->delete($img);
-                $user->payment_receipt = null;
+                $user->payment_receipt = 'paid';
             }
         }
 

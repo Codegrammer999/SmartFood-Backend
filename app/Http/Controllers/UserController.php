@@ -17,7 +17,7 @@ class UserController extends Controller
                 'bonusWallet' => $user->bonusWallet->balance ?? null,
                 'mainWallet' => $user->mainWallet->balance ?? null,
                 'total_codes' => $user->ownedCodes->count() ?? null,
-                'used_codes' => $user->usedCodes ?? null
+                'used_codes' => $user->usedCodes->count() ?? null
             ]
         ));
     }

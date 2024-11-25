@@ -19,7 +19,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', [UserController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/delete', [AuthController::class, 'delete']);
-    Route::get('/menus', [MenuController::class, 'sendMenus']);
+    Route::post('/menus', [MenuController::class, 'sendMenus']);
     Route::post('/make-order', [OrderController::class, 'create']);
     Route::get('/menus/{id}', [MenuController::class, 'getSpecificMenu']);
     Route::post('/getUserOrders', [OrderController::class, 'getOrders']);

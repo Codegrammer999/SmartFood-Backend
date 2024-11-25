@@ -107,6 +107,7 @@ class CodeController extends Controller
         $code->is_redeemed = true;
         $code->redeemed_at = now();
         $code->used_by = $user->id;
+        $code->status = 'Used';
 
         $user->registration_status = 'confirmed';
         $user->bonusWallet()->create([

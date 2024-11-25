@@ -186,7 +186,18 @@ class AuthController extends Controller
 
         if (!$user)
         {
-            return response()->json('User not found!', 404);
+            return response()->json([
+                'message' => 'Please create an account first',
+                'success' => false
+            ], 404);
+        }
+
+        if ($user->payment_receipt === 'paid')
+        {
+            return response()->json([
+                'message' => 'User has already paid',
+                'success' => false
+            ], 400);
         }
 
         // Decode and store the payment receipt image

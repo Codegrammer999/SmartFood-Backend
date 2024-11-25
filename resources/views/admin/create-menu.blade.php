@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="flex items-center justify-center bg-[#18082f]">
-    <form method="post" action="{{ route('admin.create-menu') }}" enctype="multipart/form-data" class="w-full max-w-md lg:max-w-2xl p-4 bg-[#18082f] rounded-lg shadow-lg space-y-4 backdrop-blur-lg bg-white/10">
+    <form method="POST" action="{{ route('admin.add-menu') }}" enctype="multipart/form-data" class="w-full max-w-md lg:max-w-2xl p-4 bg-[#18082f] rounded-lg shadow-lg space-y-4 backdrop-blur-lg bg-white/10">
         @csrf
 
         <h2 class="text-2xl font-semibold text-center text-white">Add new menu</h2>
@@ -18,12 +18,12 @@
         <div class="flex flex-col">
             <select name="category" required class="p-3 rounded bg-[#18082f] border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-[#ef6002]">
                 <option value="" selected>Select a category</option>
-                <option value="Drinks">Drinks</option>
-                <option value="Cooked Food">Cooked Food</option>
-                <option value="Raw Food">Raw Food</option>
-                <option value="Frozen Foods">Frozen Foods</option>
-                <option value="Vegetables">Vegetables</option>
-                <option value="Fruits">Fruits</option>
+                <option value="drinks">Drinks</option>
+                <option value="cooked">Cooked</option>
+                <option value="raw">Raw</option>
+                <option value="frozen">Frozen</option>
+                <option value="vegetables">Vegetables</option>
+                <option value="fruits">Fruits</option>
             </select>
             @error('category')
                 <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
@@ -40,7 +40,7 @@
 
         <div class="flex flex-col">
             <label for="priceOff" class="text-white mb-1">Discount</label>
-            <input id="priceOff" type="number" value="{{ old('priceOff') }}" name="priceOff" required class="p-3 rounded bg-[#18082f] border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-[#ef6002]">
+            <input id="priceOff" type="number" value="{{ old('priceOff') }}" name="priceOff" class="p-3 rounded bg-[#18082f] border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-[#ef6002]">
             @error('priceOff')
                 <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
             @enderror
